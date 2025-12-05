@@ -10,10 +10,10 @@ import {
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgId: string; deploymentId: string } }
+  { params }: { params: Promise<{ orgId: string; deploymentId: string }> }
 ) {
   try {
-    const { orgId, deploymentId } = params;
+    const { orgId, deploymentId } = await params;
 
     const result = await runGuardrailCheckForDeployment(orgId, deploymentId);
 
@@ -33,10 +33,10 @@ export async function POST(
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string; deploymentId: string } }
+  { params }: { params: Promise<{ orgId: string; deploymentId: string }> }
 ) {
   try {
-    const { orgId, deploymentId } = params;
+    const { orgId, deploymentId } = await params;
 
     const checks = await getGuardrailChecksForDeployment(orgId, deploymentId);
 

@@ -175,20 +175,13 @@ export default function IncidentDetailPage() {
 
           // Fetch deployments with guardrail checks
           try {
-            const deploymentsUrl = `/api/orgs/${org.id}/incidents/${incidentId}/deployments`;
-            console.log('Fetching deployments from:', deploymentsUrl);
-            const deploymentsRes = await fetch(deploymentsUrl);
-            console.log('Deployments response status:', deploymentsRes.status);
+            const deploymentsRes = await fetch(`/api/orgs/${org.id}/incidents/${incidentId}/deployments`);
             if (deploymentsRes.ok) {
               const deploymentsData = await deploymentsRes.json();
-              console.log('Deployments data:', deploymentsData);
               setDeployments(deploymentsData.deployments || []);
-              console.log('Set deployments count:', deploymentsData.deployments?.length || 0);
-            } else {
-              console.error('Deployments fetch failed:', deploymentsRes.status, await deploymentsRes.text());
             }
           } catch (err) {
-            console.error('Failed to load deployments:', err);
+            console.warn('Failed to load deployments:', err);
           }
         }
 

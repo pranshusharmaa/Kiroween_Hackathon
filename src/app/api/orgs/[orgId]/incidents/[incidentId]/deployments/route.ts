@@ -7,10 +7,10 @@ import { getDeploymentsForIncident } from '@/modules/metrics/change-guardrails';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string; incidentId: string } }
+  { params }: { params: Promise<{ orgId: string; incidentId: string }> }
 ) {
   try {
-    const { orgId, incidentId } = params;
+    const { orgId, incidentId } = await params;
 
     const deployments = await getDeploymentsForIncident(orgId, incidentId);
 

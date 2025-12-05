@@ -18,6 +18,8 @@ Runbook Revenant centralizes everything you need to respond to incidents:
 ✅ **Event-Sourced Timeline** - Every signal, action, and status change in one place  
 ✅ **AI-Powered Guidance** - Get suggested next steps from runbooks and past incidents  
 ✅ **SLA Watchlist** - Catch services approaching thresholds before they breach  
+✅ **Change Guardrails** - Automatic performance checks for deployments with PASS/WARN/FAIL status  
+✅ **Data Flow Mapping** - Visual service topology with error highlighting  
 ✅ **Automated Postmortems** - Generate blameless, structured retrospectives  
 ✅ **GitHub Integration** - Push postmortems as PRs via MCP connectors  
 ✅ **Multi-Tenant** - Secure org isolation with RBAC
@@ -171,6 +173,19 @@ Open [http://localhost:3000](http://localhost:3000) 🎃
 - Log snippets for quick diagnosis
 - Clear entries when resolved
 
+### 🚀 Change Guardrails
+- Automatic performance checks for every deployment
+- Before/after metrics comparison (P95 latency, error rate)
+- PASS/WARN/FAIL classification with configurable thresholds
+- Visual indicators in "What Changed?" section
+- Helps identify problematic deployments quickly
+
+### 🗺️ Data Flow Mapping
+- Visual service topology showing dependencies
+- Error highlighting on affected services
+- Hot service detection based on error frequency
+- Interactive graph for incident investigation
+
 ## API Endpoints
 
 ### Incidents
@@ -193,6 +208,19 @@ GET    /api/orgs/:orgId/incidents/:id/related
 ```
 GET    /api/orgs/:orgId/watchlist
 POST   /api/orgs/:orgId/watchlist/:id/clear
+```
+
+### Change Guardrails
+```
+GET    /api/orgs/:orgId/incidents/:id/deployments
+POST   /api/orgs/:orgId/deployments/:id/guardrail-check
+GET    /api/orgs/:orgId/deployments/:id/guardrail-check
+```
+
+### Data Flow & Service Graph
+```
+GET    /api/orgs/:orgId/incidents/:id/service-graph
+GET    /api/orgs/:orgId/data-paths
 ```
 
 ## Development

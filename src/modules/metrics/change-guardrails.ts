@@ -157,7 +157,7 @@ function classifyGuardrailResult(
     status = 'FAIL';
     issues.push(`P95 latency increased by ${latencyDeltaPct.toFixed(1)}%`);
   } else if (latencyDeltaPct >= THRESHOLDS.LATENCY_WARN_PCT) {
-    if (status !== 'FAIL') status = 'WARN';
+    status = 'WARN';
     issues.push(`P95 latency increased by ${latencyDeltaPct.toFixed(1)}%`);
   }
 
@@ -166,7 +166,7 @@ function classifyGuardrailResult(
     status = 'FAIL';
     issues.push(`Error rate increased by ${errorRateDeltaPct.toFixed(1)}% to ${(absoluteErrorRate * 100).toFixed(2)}%`);
   } else if (errorRateDeltaPct >= THRESHOLDS.ERROR_RATE_WARN_PCT || absoluteErrorRate >= THRESHOLDS.ERROR_RATE_ABSOLUTE_WARN) {
-    if (status !== 'FAIL') status = 'WARN';
+    if (status === 'PASS') status = 'WARN';
     issues.push(`Error rate increased by ${errorRateDeltaPct.toFixed(1)}% to ${(absoluteErrorRate * 100).toFixed(2)}%`);
   }
 

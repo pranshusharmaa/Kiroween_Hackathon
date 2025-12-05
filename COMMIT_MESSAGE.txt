@@ -1,0 +1,54 @@
+feat: Complete Runbook Revenant - Kiroween Edition 🎃
+
+A comprehensive multi-tenant incident management platform for SRE teams,
+built with Kiro IDE for the Kiroween Hackathon 2025.
+
+## Core Features
+
+- Event-sourced incident management with complete audit trails
+- Multi-tenant architecture with org isolation and RBAC
+- AI-powered guidance and diagnostic questions
+- Automated blameless postmortem generation
+- Signal correlation using trace IDs and correlation keys
+
+## Advanced Features
+
+- **Change Guardrails**: Automatic deployment performance checks with PASS/WARN/FAIL status
+- **Data Flow Mapping**: Visual service topology with error highlighting
+- **SLA Watchlist**: Proactive monitoring with risk scoring
+- **Resolve Incident Modal**: Capture resolution details and learnings
+- **Similar Incident Detection**: Learn from past incidents
+
+## UI/UX
+
+- Professional Halloween theme with tasteful spooky elements
+- Responsive design for desktop and mobile
+- Premium components with animations and hover effects
+- Accessibility-compliant (WCAG AA)
+- Ghost blob animations and gradient backgrounds
+
+## Technical Highlights
+
+- **Frontend**: Next.js 16, React 19, TailwindCSS 4
+- **Backend**: Node.js, TypeScript, Prisma ORM
+- **Database**: PostgreSQL with event sourcing
+- **Architecture**: Modular monolith with clear service boundaries
+- **Patterns**: Event sourcing, CQRS, multi-tenancy
+
+## Documentation
+
+- Comprehensive README with quick start guide
+- Feature-specific documentation for all major features
+- Architecture documentation with service boundaries
+- Demo script for feature walkthrough
+- Seeding scripts for realistic test data
+
+## Metrics
+
+- 15 database models with proper indexes
+- 30+ API endpoints with RESTful design
+- 50+ UI components with consistent styling
+- Full TypeScript coverage
+- Production-ready build
+
+Built with ❤️ using Kiro IDE
