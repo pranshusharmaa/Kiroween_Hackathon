@@ -1,0 +1,29 @@
+{
+  "name": "Backend Tests Runner",
+  "description": "Automatically update and run tests when backend module files are saved",
+  "version": "1.0.0",
+  "trigger": {
+    "type": "fileSave",
+    "patterns": [
+      "src/modules/incidents/**/*.ts",
+      "src/modules/connectors/**/*.ts",
+      "src/modules/identity/**/*.ts",
+      "src/modules/knowledge/**/*.ts",
+      "src/modules/intelligence/**/*.ts"
+    ],
+    "excludePatterns": [
+      "**/*.test.ts",
+      "**/*.spec.ts"
+    ]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "A backend module file was just saved. Please:\n\n1. **Inspect the diff** to understand what changed in the file.\n\n2. **Update or create corresponding tests** in `src/tests/` directory:\n   - If tests exist, update them to cover the new/changed functionality\n   - If no tests exist, create new test files following the pattern: `src/tests/<module-name>/<file-name>.test.ts`\n   - Focus on unit tests for pure functions and integration tests for database operations\n   - Use the testing framework already configured in the project\n\n3. **Run the relevant tests**:\n   - If specific test files exist, run them individually\n   - Otherwise, run `npm test` to execute the full test suite\n   - Capture and analyze the test output\n\n4. **Summarize the results**:\n   - Report which tests passed/failed\n   - If failures occurred, explain what needs to be fixed\n   - Suggest any additional test coverage needed\n\nChanged file: {{filePath}}\n\nPlease proceed with the test update and execution."
+  },
+  "enabled": true,
+  "metadata": {
+    "author": "Runbook Revenant Team",
+    "tags": ["testing", "backend", "automation", "quality"],
+    "category": "testing"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Documentation Sync",
+  "description": "Automatically update documentation when module files change",
+  "version": "1.0.0",
+  "trigger": {
+    "type": "fileSave",
+    "patterns": [
+      "src/modules/**/*.ts",
+      "src/app/api/**/*.ts",
+      "prisma/schema.prisma"
+    ],
+    "excludePatterns": [
+      "**/*.test.ts",
+      "**/*.spec.ts"
+    ]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "A module or API file was just saved. Please update the documentation to reflect any changes:\n\n1. **Analyze the changes** in the saved file:\n   - New endpoints or API routes\n   - Modified data models or types\n   - Changed business logic or flows\n   - New modules or services\n\n2. **Update README.md** if needed:\n   - Add new API endpoints to the API documentation section\n   - Update feature descriptions if functionality changed\n   - Add new setup steps if dependencies were added\n   - Update usage examples if interfaces changed\n\n3. **Update or create docs/architecture.md**:\n   - Document new services or modules\n   - Update service interaction diagrams\n   - Reflect changes in data models\n   - Update API endpoint listings\n   - Document new integration points\n\n4. **Reference the specs** in `.kiro/specs/` for context:\n   - Use requirements and design documents to ensure documentation accuracy\n   - Maintain consistency with the architectural vision\n   - Include relevant cross-references\n\n5. **Keep documentation concise and accurate**:\n   - Focus on what changed, not everything\n   - Use clear, technical language\n   - Include code examples where helpful\n   - Update version numbers or changelog if applicable\n\nChanged file: {{filePath}}\n\nPlease proceed with the documentation updates."
+  },
+  "enabled": true,
+  "metadata": {
+    "author": "Runbook Revenant Team",
+    "tags": ["documentation", "architecture", "automation", "maintenance"],
+    "category": "documentation"
+  }
+}

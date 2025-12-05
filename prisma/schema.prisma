@@ -5,10 +5,244 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// Identity & Access Service (IAS) Models
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  billingPlan String   @default("free")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships Membership[]
+  projects    Project[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  authProvider String   @default("local")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Project {
+  id                 String   @id @default(cuid())
+  orgId              String
+  name               String
+  slug               String
+  environments       String[] @default(["production", "staging"])
+  defaultRunbookPath String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, slug])
+  @@index([orgId])
+  @@map("projects")
+}
+
+// Incident & Timeline Service (ITS) Models
+
+model IncidentEvent {
+  id         String   @id @default(cuid())
+  orgId      String
+  incidentId String
+  ts         DateTime @default(now())
+  type       String
+  payload    Json
+
+  @@index([orgId, incidentId, ts])
+  @@index([incidentId, ts])
+  @@map("incident_events")
+}
+
+model IncidentSnapshot {
+  id               String   @id @default(cuid())
+  orgId            String
+  projectId        String
+  title            String
+  serviceName      String
+  status           String
+  severity         String
+  environment      String
+  detectedBy       String
+  primarySignalId  String?
+  runbookPath      String?
+  externalRefs     Json     @default("[]")
+  correlationKeys  String[] @default([])
+  dataPathKeys     String[] @default([])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  signals       IncidentSignal[]
+  actions       IncidentAction[]
+  sloViolations SLOViolation[]
+
+  @@index([orgId, status, severity])
+  @@index([orgId, projectId])
+  @@index([orgId, createdAt])
+  @@index([serviceName])
+  @@map("incident_snapshots")
+}
+
+model IncidentSignal {
+  id             String   @id @default(cuid())
+  incidentId     String
+  orgId          String
+  projectId      String
+  signalType     String
+  serviceName    String
+  environment    String
+  correlationKey String?
+  traceId        String?
+  source         String
+  summary        String
+  data           Json     @default("{}")
+  ts             DateTime @default(now())
+
+  incident IncidentSnapshot @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, ts])
+  @@index([orgId, correlationKey])
+  @@index([traceId])
+  @@map("incident_signals")
+}
+
+model IncidentAction {
+  id         String   @id @default(cuid())
+  incidentId String
+  orgId      String
+  actorType  String
+  actorRef   String
+  actionKind String
+  label      String
+  details    String?
+  ts         DateTime @default(now())
+
+  incident IncidentSnapshot @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, ts])
+  @@index([orgId])
+  @@map("incident_actions")
+}
+
+model SLOViolation {
+  id                   String   @id @default(cuid())
+  incidentId           String
+  orgId                String
+  sloId                String
+  windowStart          DateTime
+  windowEnd            DateTime
+  errorBudgetConsumed  Float
+  thresholdBreached    Boolean
+  details              Json     @default("{}")
+  createdAt            DateTime @default(now())
+
+  incident IncidentSnapshot @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@index([orgId, sloId])
+  @@map("slo_violations")
+}
+
+// Knowledge & Runbook Service (KRS) Models
+
+model Postmortem {
+  id          String   @id @default(cuid())
+  orgId       String
+  incidentId  String   @unique
+  markdown    String
+  summaryText String
+  tags        Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId, createdAt])
+  @@index([orgId, incidentId])
+  @@map("postmortems")
+}
+
+model SLAWatchEntry {
+  id             String   @id @default(cuid())
+  orgId          String
+  projectId      String
+  serviceName    String
+  environment    String
+  correlationKey String?  // optional, to tie to specific error signature
+  dataPathKey    String?  // optional, to tie to specific business flow
+
+  status         String   // "AT_RISK" | "BREACHED" | "CLEARED"
+  riskScore      Float
+  source         String   // e.g. "METRIC_TREND", "ERROR_BURST"
+
+  logsSnapshot   Json     // short list of log messages or summaries
+  firstDetectedAt DateTime @default(now())
+  lastUpdatedAt   DateTime @updatedAt
+
+  @@index([orgId, projectId, serviceName, environment, status])
+  @@index([dataPathKey])
+}
+
+
+// Data Path Flow tracking
+model DataPathFlow {
+  id            String   @id @default(cuid())
+  orgId         String
+  projectId     String
+  dataPathKey   String
+  serviceName   String
+  environment   String
+  
+  // Business flow features
+  route         String?
+  accountId     String?
+  customerId    String?
+  orderId       String?
+  userId        String?
+  
+  // Tracking
+  eventCount    Int      @default(1)
+  firstSeenAt   DateTime @default(now())
+  lastSeenAt    DateTime @updatedAt
+  
+  @@unique([orgId, projectId, dataPathKey])
+  @@index([orgId, serviceName, environment])
+  @@index([dataPathKey])
+  @@map("data_path_flows")
 }
