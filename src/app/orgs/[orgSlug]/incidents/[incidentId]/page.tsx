@@ -15,6 +15,7 @@ import { CardLoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ResolveIncidentModal } from '@/components/ResolveIncidentModal';
 import { DataFlowMap } from '@/components/DataFlowMap';
+import { GuardrailBadge } from '@/components/ui/GuardrailBadge';
 
 interface Incident {
   id: string;
@@ -98,6 +99,7 @@ export default function IncidentDetailPage() {
   const [dataPathFlows, setDataPathFlows] = useState<DataPathFlow[]>([]);
   const [watchlistEntries, setWatchlistEntries] = useState<WatchlistEntry[]>([]);
   const [similarIncidents, setSimilarIncidents] = useState<any[]>([]);
+  const [deployments, setDeployments] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +171,24 @@ export default function IncidentDetailPage() {
             }
           } catch (err) {
             console.warn('Failed to load data paths:', err);
+          }
+
+          // Fetch deployments with guardrail checks
+          try {
+            const deploymentsUrl = `/api/orgs/${org.id}/incidents/${incidentId}/deployments`;
+            console.log('Fetching deployments from:', deploymentsUrl);
+            const deploymentsRes = await fetch(deploymentsUrl);
+            console.log('Deployments response status:', deploymentsRes.status);
+            if (deploymentsRes.ok) {
+              const deploymentsData = await deploymentsRes.json();
+              console.log('Deployments data:', deploymentsData);
+              setDeployments(deploymentsData.deployments || []);
+              console.log('Set deployments count:', deploymentsData.deployments?.length || 0);
+            } else {
+              console.error('Deployments fetch failed:', deploymentsRes.status, await deploymentsRes.text());
+            }
+          } catch (err) {
+            console.error('Failed to load deployments:', err);
           }
         }
 
@@ -475,48 +495,88 @@ export default function IncidentDetailPage() {
               <span className="text-xs text-zinc-500">Recent deployments & changes</span>
             </div>
             <div className="space-y-2">
-              {/* Mock data for demo - in production this would query GitHub/deployment systems */}
-              <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 font-medium">
-                      DEPLOY
-                    </span>
-                    <span className="text-xs text-orange-400 font-medium">
-                      12 min before incident
-                    </span>
-                  </div>
-                </div>
-                <div className="text-sm text-zinc-300 mb-1">
-                  PR #456: Update payment gateway timeout settings
-                </div>
-                <div className="text-xs text-zinc-500">
-                  by @engineer · {incident.serviceName} · production
-                </div>
-              </div>
+              {deployments.length === 0 ? (
+                <EmptyState
+                  title="No recent deployments"
+                  description="Deployments will appear here when linked to this incident."
+                  icon="🚀"
+                />
+              ) : (
+                deployments.map((deployment) => {
+                  const guardrailCheck = deployment.guardrailChecks?.[0];
+                  const changeTypeColors: Record<string, string> = {
+                    DEPLOY: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+                    CONFIG_CHANGE: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+                    ROLLBACK: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                    SCALE: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+                  };
+                  const colorClass = changeTypeColors[deployment.changeType] || 'bg-zinc-500/20 text-zinc-300 border-zinc-500/40';
 
-              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40 font-medium">
-                      CONFIG
-                    </span>
-                    <span className="text-xs text-zinc-500">
-                      2 hours before
-                    </span>
-                  </div>
-                </div>
-                <div className="text-sm text-zinc-300 mb-1">
-                  Database connection pool size increased
-                </div>
-                <div className="text-xs text-zinc-500">
-                  by @sre-team · infrastructure
-                </div>
-              </div>
-
-              <div className="text-xs text-zinc-600 text-center pt-2">
-                💡 Correlation: Recent deploy may be related
-              </div>
+                  return (
+                    <div key={deployment.id} className="p-3 rounded-lg bg-white/5 border border-white/10 hover:border-orange-500/30 transition-all duration-200">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${colorClass}`}>
+                            {deployment.changeType.replace('_', ' ')}
+                          </span>
+                          {guardrailCheck && (
+                            <GuardrailBadge status={guardrailCheck.status} />
+                          )}
+                          <span className="text-xs text-zinc-500">
+                            {getRelativeTime(deployment.deployedAt)} ago
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-zinc-300 mb-1">
+                        {deployment.title}
+                      </div>
+                      <div className="text-xs text-zinc-500 mb-2">
+                        {deployment.author && `by ${deployment.author} · `}
+                        {deployment.serviceName} · {deployment.environment}
+                      </div>
+                      
+                      {/* Guardrail metrics */}
+                      {guardrailCheck && (
+                        <div className="mt-2 pt-2 border-t border-white/10">
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div>
+                              <span className="text-zinc-500">P95 Latency:</span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-zinc-400">{Math.round(guardrailCheck.baselineP95LatencyMs)}ms</span>
+                                <span className="text-zinc-600">→</span>
+                                <span className={guardrailCheck.latencyDeltaPct > 20 ? 'text-red-400' : guardrailCheck.latencyDeltaPct > 10 ? 'text-amber-400' : 'text-emerald-400'}>
+                                  {Math.round(guardrailCheck.newP95LatencyMs)}ms
+                                </span>
+                                <span className={guardrailCheck.latencyDeltaPct > 0 ? 'text-red-400' : 'text-emerald-400'}>
+                                  ({guardrailCheck.latencyDeltaPct > 0 ? '+' : ''}{guardrailCheck.latencyDeltaPct.toFixed(1)}%)
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500">Error Rate:</span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-zinc-400">{(guardrailCheck.baselineErrorRate * 100).toFixed(2)}%</span>
+                                <span className="text-zinc-600">→</span>
+                                <span className={guardrailCheck.errorRateDeltaPct > 50 ? 'text-red-400' : guardrailCheck.errorRateDeltaPct > 20 ? 'text-amber-400' : 'text-emerald-400'}>
+                                  {(guardrailCheck.newErrorRate * 100).toFixed(2)}%
+                                </span>
+                                <span className={guardrailCheck.errorRateDeltaPct > 0 ? 'text-red-400' : 'text-emerald-400'}>
+                                  ({guardrailCheck.errorRateDeltaPct > 0 ? '+' : ''}{guardrailCheck.errorRateDeltaPct.toFixed(1)}%)
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          {guardrailCheck.status !== 'PASS' && (
+                            <div className="mt-2 text-[10px] text-zinc-500">
+                              {guardrailCheck.reason}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </Card>
         </div>

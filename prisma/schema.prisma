@@ -246,3 +246,64 @@ model DataPathFlow {
   @@index([dataPathKey])
   @@map("data_path_flows")
 }
+
+// Change Guardrails - Deployment tracking
+model DeploymentEvent {
+  id          String   @id @default(cuid())
+  orgId       String
+  projectId   String
+  serviceName String
+  environment String
+  changeType  String   // "DEPLOY", "CONFIG_CHANGE", "ROLLBACK", "SCALE"
+  source      String   // "GITHUB", "GITLAB", "JENKINS", "MANUAL"
+  externalId  String?  // External deployment ID from CI/CD
+  title       String
+  author      String?
+  deployedAt  DateTime @default(now())
+  incidentId  String?  // Optional link to incident if deployment caused one
+  
+  guardrailChecks ChangeGuardrailCheck[]
+  
+  @@index([orgId, serviceName, environment, deployedAt])
+  @@index([incidentId])
+  @@map("deployment_events")
+}
+
+// Change Guardrails - Performance check results
+model ChangeGuardrailCheck {
+  id           String   @id @default(cuid())
+  orgId        String
+  deploymentId String
+  serviceName  String
+  environment  String
+  
+  // Check result
+  status       String   // "PASS", "WARN", "FAIL"
+  reason       String
+  
+  // Time windows
+  baselineWindowStart DateTime
+  baselineWindowEnd   DateTime
+  newWindowStart      DateTime
+  newWindowEnd        DateTime
+  
+  // Baseline metrics
+  baselineP95LatencyMs Float
+  baselineErrorRate    Float
+  
+  // New metrics
+  newP95LatencyMs      Float
+  newErrorRate         Float
+  
+  // Deltas
+  latencyDeltaPct      Float
+  errorRateDeltaPct    Float
+  
+  createdAt    DateTime @default(now())
+  
+  deployment DeploymentEvent @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  
+  @@index([orgId, deploymentId])
+  @@index([serviceName, environment, status])
+  @@map("change_guardrail_checks")
+}

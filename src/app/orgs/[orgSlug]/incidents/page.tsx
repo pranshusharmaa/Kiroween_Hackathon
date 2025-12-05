@@ -302,9 +302,9 @@ export default function IncidentsPage() {
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all duration-200 hover:bg-white/10"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="severity">By Severity</option>
+                  <option value="newest" className="bg-[#0a0a0a] text-zinc-300">Newest First</option>
+                  <option value="oldest" className="bg-[#0a0a0a] text-zinc-300">Oldest First</option>
+                  <option value="severity" className="bg-[#0a0a0a] text-zinc-300">By Severity</option>
                 </select>
               </div>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import { OrgSwitcher } from '@/components/OrgSwitcher';
-import { useParams, useRouter } from 'next/navigation';
+import { KiroweenHeader } from '@/components/KiroweenHeader';
+import { useParams } from 'next/navigation';
 
 export default function OrgLayout({
   children,
@@ -9,38 +9,34 @@ export default function OrgLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
-  const router = useRouter();
   const orgSlug = params.orgSlug as string;
 
-  const handleLogoClick = () => {
-    router.push(`/orgs/${orgSlug}/incidents`);
-  };
-
   return (
-    <div className="min-h-screen bg-[#050712] text-zinc-50">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur px-4 py-3 flex items-center justify-between">
-        <button 
-          onClick={handleLogoClick}
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
-        >
-          <span className="text-2xl">🎃</span>
-          <div>
-            <div className="font-semibold text-lg text-zinc-50">
-              Runbook Revenant
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500">
-                Bringing runbooks back from the dead
-              </span>
-              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-500/10 text-orange-300 border border-orange-500/40">
-                Kiroween Edition
-              </span>
-            </div>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Halloween night sky gradient background */}
+      <div className="fixed inset-0 bg-[#050712] bg-[radial-gradient(circle_at_20%_20%,_rgba(248,113,113,0.08),_transparent_55%),radial-gradient(circle_at_80%_80%,_rgba(56,189,248,0.05),_transparent_55%)]" />
+      
+      {/* Ghost blob decorations - behind content */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Top-left ghost */}
+        <div className="absolute top-20 left-10 h-40 w-40 rounded-full bg-gradient-to-b from-purple-500/15 via-transparent to-transparent blur-3xl animate-ghost-float" />
+        
+        {/* Mid-right ghost with emoji */}
+        <div className="absolute top-1/3 right-20 h-48 w-48 rounded-full bg-gradient-to-b from-orange-500/12 via-transparent to-transparent blur-3xl animate-ghost-float-slow">
+          <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-20">
+            👻
           </div>
-        </button>
-        <OrgSwitcher />
-      </header>
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">{children}</main>
+        </div>
+        
+        {/* Bottom-left ghost */}
+        <div className="absolute bottom-32 left-1/4 h-36 w-36 rounded-full bg-gradient-to-b from-blue-500/10 via-transparent to-transparent blur-3xl animate-ghost-float" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Main content - above ghosts */}
+      <div className="relative z-10 min-h-screen text-zinc-50">
+        <KiroweenHeader orgSlug={orgSlug} />
+        <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">{children}</main>
+      </div>
     </div>
   );
 }
