@@ -118,6 +118,8 @@ model IncidentSnapshot {
   @@index([orgId, projectId])
   @@index([orgId, createdAt])
   @@index([serviceName])
+  @@index([orgId, serviceName, status])
+  @@index([orgId, serviceName, createdAt])
   @@map("incident_snapshots")
 }
 

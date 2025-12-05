@@ -16,11 +16,12 @@ When incidents strike, your team faces:
 Runbook Revenant centralizes everything you need to respond to incidents:
 
 ✅ **Event-Sourced Timeline** - Every signal, action, and status change in one place  
-✅ **AI-Powered Guidance** - Get suggested next steps from runbooks and past incidents  
+✅ **AI-Powered Guidance** - Get suggested next steps enriched with runbooks and past incidents  
+✅ **LLM-Ready Architecture** - Context builder aggregates rich incident data for AI integration  
 ✅ **SLA Watchlist** - Catch services approaching thresholds before they breach  
 ✅ **Change Guardrails** - Automatic performance checks for deployments with PASS/WARN/FAIL status  
 ✅ **Data Flow Mapping** - Visual service topology with error highlighting  
-✅ **Automated Postmortems** - Generate blameless, structured retrospectives  
+✅ **Automated Postmortems** - Generate blameless retrospectives with past incident learnings  
 ✅ **GitHub Integration** - Push postmortems as PRs via MCP connectors  
 ✅ **Multi-Tenant** - Secure org isolation with RBAC
 
@@ -186,6 +187,14 @@ Open [http://localhost:3000](http://localhost:3000) 🎃
 - Hot service detection based on error frequency
 - Interactive graph for incident investigation
 
+### 🤖 LLM-Ready Intelligence
+- **Context Builder**: Aggregates incident data, runbooks, and past incidents
+- **Works Today**: Full demo functionality without external LLM
+- **Production Ready**: Structured for easy OpenAI/Anthropic integration
+- **Knowledge Leverage**: Automatically includes relevant runbooks and similar past incidents
+- **Robust**: Graceful fallbacks if context unavailable
+- See [LLM Integration Guide](LLM_INTEGRATION_GUIDE.md) for details
+
 ## API Endpoints
 
 ### Incidents
@@ -276,7 +285,8 @@ npx prisma migrate reset
 - **Framework**: Next.js 16 (App Router)
 - **Database**: PostgreSQL + Prisma ORM
 - **UI**: React + TailwindCSS
-- **AI**: Kiro IDE with MCP connectors
+- **AI**: LLM-ready context builder (OpenAI/Anthropic compatible)
+- **Development**: Kiro IDE with MCP connectors
 - **Testing**: (Framework TBD)
 
 ## Design Principles
@@ -296,21 +306,35 @@ Postmortems focus on systems and processes, not individuals. Language avoids bla
 ### Safety First
 Actions are categorized as SAFE_REVERSIBLE, RISKY, or INFO_ONLY. Destructive operations are simulated in demo mode.
 
+### LLM-Ready Architecture
+Intelligence features use a **context builder pattern** that:
+- Works today without external LLM (rule-based fallbacks)
+- Ready for production LLM integration (structured prompts)
+- Enriches context with runbooks and past incidents
+- Handles errors gracefully with fallbacks
+- See [LLM Integration Guide](LLM_INTEGRATION_GUIDE.md)
+
 ## Roadmap
 
-### v0.2 - Connector Integration
+### v0.2 - LLM Integration
+- [ ] OpenAI/Anthropic API integration
+- [ ] Streaming LLM responses
+- [ ] Fine-tuning on historical incidents
+- [ ] Multi-turn conversation support
+
+### v0.3 - Connector Integration
 - [ ] Grafana webhook connector
 - [ ] Datadog alert ingestion
 - [ ] PagerDuty integration
 - [ ] Automatic incident creation from alerts
 
-### v0.3 - Advanced Intelligence
+### v0.4 - Advanced Intelligence
 - [ ] Incident pattern detection
 - [ ] Anomaly detection in metrics
 - [ ] Runbook recommendations
 - [ ] Action item tracking
 
-### v0.4 - Collaboration
+### v0.5 - Collaboration
 - [ ] Real-time incident collaboration
 - [ ] Slack notifications
 - [ ] On-call scheduling

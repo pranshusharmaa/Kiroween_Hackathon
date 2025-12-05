@@ -2,16 +2,21 @@ import { getIncidentWithDetails, getIncidentEvents } from '../incidents/queries'
 import { getRunbookForService } from '../knowledge/runbooks';
 import { savePostmortem } from '../knowledge/postmortems';
 import { GeneratedPostmortem, PostmortemOptions } from './types';
+import { buildIncidentLlmContext, formatContextForPrompt } from './context';
 
 /**
  * Generate a postmortem for an incident
  * Follows SRE principles: blameless, fact-based, actionable
+ * Now enriched with runbooks and past incidents context
  */
 export async function generatePostmortem(
   orgId: string,
   incidentId: string,
   options: PostmortemOptions = {}
 ): Promise<GeneratedPostmortem> {
+  // Build rich LLM context
+  const llmContext = await buildIncidentLlmContext(orgId, incidentId);
+
   // Gather incident context
   const incident = await getIncidentWithDetails(orgId, incidentId);
   if (!incident) {
@@ -33,8 +38,8 @@ export async function generatePostmortem(
       ? `${durationHours}h ${remainingMinutes}m`
       : `${durationMinutes}m`;
 
-  // Generate markdown
-  const markdown = generatePostmortemMarkdown(incident, events, duration, runbook, options);
+  // Generate markdown (enriched with LLM context)
+  const markdown = generatePostmortemMarkdown(incident, events, duration, runbook, options, llmContext);
 
   // Generate summary
   const summaryText = generateSummary(incident, duration);
@@ -66,13 +71,15 @@ export async function generatePostmortem(
 
 /**
  * Generate postmortem markdown following SRE best practices
+ * Now enriched with LLM context including runbooks and past incidents
  */
 function generatePostmortemMarkdown(
   incident: any,
   events: any[],
   duration: string,
   runbook: string | null,
-  options: PostmortemOptions
+  options: PostmortemOptions,
+  llmContext: any
 ): string {
   const sections: string[] = [];
 
@@ -139,6 +146,13 @@ function generatePostmortemMarkdown(
   sections.push(`## Lessons Learned\n`);
   sections.push(generateLessonsLearned(incident, events));
   sections.push('');
+
+  // Past Similar Incidents (if available from LLM context)
+  if (llmContext && llmContext.pastIncidentsContext && llmContext.pastIncidentsContext !== 'No similar past incidents found.') {
+    sections.push(`## Related Past Incidents\n`);
+    sections.push(llmContext.pastIncidentsContext);
+    sections.push('\n');
+  }
 
   return sections.join('\n');
 }
